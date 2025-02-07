@@ -1,0 +1,75 @@
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+
+# Mock data
+wallet_balance = {"STPC": 1100, "TRUMP": 0.000378200}
+friends_list = []
+tasks = [
+    {"description": "Gather 20 friends", "progress": "0/20", "reward": "+10000 STPC"},
+    {"description": "11TON = Core i9", "reward": "+10000 STPC"},
+    {"description": "RTX4090", "reward": "+100000 STPC"},
+    {"description": "A100GPU", "reward": "+1000000 STPC"},
+]
+
+# Start command
+def start(update: Update, context: CallbackContext) -> None:
+    keyboard = [
+        [InlineKeyboardButton("Wallet", callback_data='wallet')],
+        [InlineKeyboardButton("Tasks", callback_data='tasks')],
+        [InlineKeyboardButton("Invite Friends", callback_data='invite')],
+        [InlineKeyboardButton("Connect on Telegram", url='https://t.me/your_username')],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please choose an option:', reply_markup=reply_markup)
+
+# Handle button clicks
+def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
+
+    if query.data == 'wallet':
+        wallet_info = (
+            "**Wallet Balance**\n\n"
+            f"**STPC**: {wallet_balance['STPC']}\n"
+            f"**TRUMP**: {wallet_balance['TRUMP']} ≈ $0.00\n\n"
+            "Withdraw\n\n"
+            "---\n\n"
+            "**Receiving wallet**\n"
+            "Set Wallet Address\n\n"
+            "---\n\n"
+            "**Withdrawal Record**\n"
+            "No records"
+        )
+        query.edit_message_text(text=wallet_info, parse_mode='Markdown')
+
+    elif query.data == 'tasks':
+        tasks_info = "**Daily Tasks**\n\n"
+        for task in tasks:
+            tasks_info += f"{task['description']} {task.get('progress', '')} {task['reward']}\n"
+        query.edit_message_text(text=tasks_info, parse_mode='Markdown')
+
+    elif query.data == 'invite':
+        invite_info = (
+            "**Invite Friends**\n\n"
+            "Invite friends and get +1000$TPC for each friend you invite.\n\n"
+            "My Friends (0)\n"
+            "No Invitations Yet"
+        )
+        query.edit_message_text(text=invite_info, parse_mode='Markdown')
+
+# Main function to start the bot
+def main() -> None:
+    # Replace 'YOUR_BOT_TOKEN' with your actual bot token
+    updater = Updater("YOUR_BOT_TOKEN")
+
+    # Add handlers
+    updater.dispatcher.add_handler(CommandHandler('start', start))
+    updater.dispatcher.add_handler(CallbackQueryHandler(button))
+
+    # Start the bot
+    updater.start_polling()
+    updater.idle()
+
+# Run the bot
+if __name__ == '__main__':
+    main()
